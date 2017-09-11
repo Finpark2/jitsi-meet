@@ -2,8 +2,10 @@
 
 const process = require('process');
 const webpack = require('webpack');
+const path = require('path');
 
-const aui_css = `${__dirname}/node_modules/@atlassian/aui/dist/aui/css/`;
+const aui_css = 
+    path.join(__dirname, `/node_modules/@atlassian/aui/dist/aui/css/`);
 
 /**
  * The URL of the Jitsi Meet deployment to be proxy to in the context of
@@ -15,14 +17,14 @@ const devServerProxyTarget
 const minimize
     = process.argv.indexOf('-p') !== -1
         || process.argv.indexOf('--optimize-minimize') !== -1;
-const node_modules = `${__dirname}/node_modules/`;
+const node_modules = path.join(__dirname, `/node_modules/`);
 const plugins = [
     new webpack.LoaderOptionsPlugin({
         debug: !minimize,
         minimize
     })
 ];
-const strophe = /\/node_modules\/strophe(js-plugins)?\/.*\.js$/;
+const strophe = /[\/\\]node_modules[\/\\]strophe(js-plugins)?[\/\\].*\.js/;
 
 if (minimize) {
     // XXX Webpack's command line argument -p is not enough. Further
@@ -48,14 +50,7 @@ if (minimize) {
 const config = {
     devServer: {
         https: true,
-        inline: true,
-        proxy: {
-            '/': {
-                bypass: devServerProxyBypass,
-                secure: false,
-                target: devServerProxyTarget
-            }
-        }
+        inline: true
     },
     devtool: 'source-map',
     module: {
@@ -89,7 +84,7 @@ const config = {
             // dependencies including AUI, lib-jitsi-meet.
 
             loader: 'expose-loader?$!expose-loader?jQuery',
-            test: /\/node_modules\/jquery\/.*\.js$/
+            test: /[\/\\]node_modules[\/\\]jquery[\/\\].*\.js$/
         }, {
             // Disable AMD for the Strophe.js library or its imports will fail
             // at runtime.
@@ -100,7 +95,7 @@ const config = {
             // Set scope to window for URL polyfill.
 
             loader: 'imports-loader?this=>window',
-            test: /\/node_modules\/url-polyfill\/.*\.js$/
+            test: /[\/\\]node_modules[\/\\]url-polyfill[\/\\].*\.js$/
         }, {
             // Allow CSS to be imported into JavaScript.
 
