@@ -1,3 +1,4 @@
+/// <binding AfterBuild='Run - Production' />
 /* global __dirname */
 
 const process = require('process');
@@ -13,7 +14,7 @@ const aui_css =
  */
 const devServerProxyTarget
     = process.env.WEBPACK_DEV_SERVER_PROXY_TARGET || 
-            'https://127.0.0.1:7443/ofmeet';
+            'https://127.0.0.1:7443';
 
 const minimize
     = process.argv.indexOf('-p') !== -1
@@ -52,13 +53,13 @@ const config = {
     devServer: {
         https: true,
         inline: true,
-        proxy: {
-            '/': {
-                bypass: devServerProxyBypass,
-                secure: false,
-                target: devServerProxyTarget
-            }
-        }
+        // proxy: {
+        //     '/': {
+        //         bypass: devServerProxyBypass,
+        //         secure: false,
+        //         target: devServerProxyTarget
+        //     }
+        // }
     },
     devtool: 'source-map',
     module: {

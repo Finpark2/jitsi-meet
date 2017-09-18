@@ -1,3 +1,4 @@
+/// <binding AfterBuild='default' />
 var gulp = require('gulp');
 var webpack = require('webpack-stream');
 var fs = require('fs-jetpack');
