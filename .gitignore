@@ -69,3 +69,10 @@ fastlane/screenshots
 # CocoaPods
 Pods/
 Podfile.lock
+
+# VS Code
+\.vs
+\bin
+\obj
+JitsiMeet.njsproj.user
+JitsiMeet.njsproj.vspscc
