@@ -46,6 +46,7 @@ import {
     setVideoMuted
 } from './react/features/base/media';
 import {
+    dominantSpeakerChanged,
     localParticipantConnectionStatusChanged,
     localParticipantRoleChanged,
     MAX_DISPLAY_NAME_LENGTH,
@@ -71,7 +72,10 @@ import {
     mediaPermissionPromptVisibilityChanged,
     suspendDetected
 } from './react/features/overlay';
-import { showDesktopSharingButton } from './react/features/toolbox';
+import {
+    isButtonEnabled,
+    showDesktopSharingButton
+} from './react/features/toolbox';
 
 const { participantConnectionStatus } = JitsiMeetJS.constants;
 
@@ -365,7 +369,8 @@ class ConferenceConnector {
         logger.error('CONFERENCE Error:', err, params);
         switch (err) {
         case ConferenceErrors.CHAT_ERROR:
-            {
+            logger.error("Chat error.", err);
+            if (isButtonEnabled('chat')) {
                 let [code, msg] = params;
                 APP.UI.showChatError(code, msg);
             }
@@ -1714,6 +1719,8 @@ export default {
                 APP.UI.participantConnectionStatusChanged(id);
         });
         room.on(ConferenceEvents.DOMINANT_SPEAKER_CHANGED, (id) => {
+            APP.store.dispatch(dominantSpeakerChanged(id));
+
             if (this.isLocalId(id)) {
                 this.isDominantSpeaker = true;
                 this.setRaisedHand(false);
@@ -1734,20 +1741,23 @@ export default {
             room.on(ConferenceEvents.CONNECTION_RESTORED, () => {
                 APP.UI.markVideoInterrupted(false);
             });
-            room.on(ConferenceEvents.MESSAGE_RECEIVED, (id, body, ts) => {
-                let nick = getDisplayName(id);
-                APP.API.notifyReceivedChatMessage({
-                    id,
-                    nick,
-                    body,
-                    ts
+
+            if (isButtonEnabled('chat')) {
+                room.on(ConferenceEvents.MESSAGE_RECEIVED, (id, body, ts) => {
+                    let nick = getDisplayName(id);
+                    APP.API.notifyReceivedChatMessage({
+                        id,
+                        nick,
+                        body,
+                        ts
+                    });
+                    APP.UI.addMessage(id, nick, body, ts);
                 });
-                APP.UI.addMessage(id, nick, body, ts);
-            });
-            APP.UI.addListener(UIEvents.MESSAGE_CREATED, (message) => {
-                APP.API.notifySendingChatMessage(message);
-                room.sendTextMessage(message);
-            });
+                APP.UI.addListener(UIEvents.MESSAGE_CREATED, (message) => {
+                    APP.API.notifySendingChatMessage(message);
+                    room.sendTextMessage(message);
+                });
+            }
 
             APP.UI.addListener(UIEvents.SELECTED_ENDPOINT, (id) => {
                 try {
