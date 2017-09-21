@@ -2,6 +2,8 @@ import Iterator from 'es6-iterator';
 import BackgroundTimer from 'react-native-background-timer';
 import 'url-polyfill'; // Polyfill for URL constructor
 
+import { Platform } from '../../react';
+
 import Storage from './Storage';
 
 /**
@@ -305,26 +307,25 @@ function _visitNode(node, callback) {
         // Required by:
         // - lib-jitsi-meet/modules/RTC/adapter.screenshare.js
         // - lib-jitsi-meet/modules/RTC/RTCBrowserType.js
-        (() => {
-            const reactNativePackageJSON = require('react-native/package.json');
-            let userAgent = reactNativePackageJSON.name || 'react-native';
+        let userAgent = navigator.userAgent || '';
 
-            const version = reactNativePackageJSON.version;
+        // react-native/version
+        const { name, version } = require('react-native/package.json');
+        let rn = name || 'react-native';
 
-            if (version) {
-                userAgent += `/${version}`;
-            }
+        version && (rn += `/${version}`);
+        if (userAgent.indexOf(rn) === -1) {
+            userAgent = userAgent ? `${rn} ${userAgent}` : rn;
+        }
 
-            if (typeof navigator.userAgent !== 'undefined') {
-                const s = navigator.userAgent.toString();
+        // (OS version)
+        const os = `(${Platform.OS} ${Platform.Version})`;
 
-                if (s.length > 0 && s.indexOf(userAgent) === -1) {
-                    userAgent = `${s} ${userAgent}`;
-                }
-            }
+        if (userAgent.indexOf(os) === -1) {
+            userAgent = userAgent ? `${userAgent} ${os}` : os;
+        }
 
-            navigator.userAgent = userAgent;
-        })();
+        navigator.userAgent = userAgent;
     }
 
     // sessionStorage

@@ -1,4 +1,7 @@
 /* global $, APP, config, JitsiMeetJS */
+
+import { toJid } from '../../../react/features/base/connection';
+
 const ConnectionErrors = JitsiMeetJS.errors.connection;
 
 /**
@@ -17,26 +20,6 @@ function getPasswordInputHtml() {
         <input name="password" type="password"
                class="input-control"
                data-i18n="[placeholder]dialog.userPassword">`;
-}
-
-/**
- * Convert provided id to jid if it's not jid yet.
- * @param {string} id user id or jid
- * @returns {string} jid
- */
-function toJid(id) {
-    if (id.indexOf("@") >= 0) {
-        return id;
-    }
-
-    let jid = id.concat('@');
-    if (config.hosts.authdomain) {
-        jid += config.hosts.authdomain;
-    } else {
-        jid += config.hosts.domain;
-    }
-
-    return jid;
 }
 
 /**
@@ -90,7 +73,7 @@ function LoginDialog(successCallback, cancelCallback) {
                     let password = f.password;
                     if (jid && password) {
                         connDialog.goToState('connecting');
-                        successCallback(toJid(jid), password);
+                        successCallback(toJid(jid, config.hosts), password);
                     }
                 } else {
                     // User cancelled
@@ -214,34 +197,38 @@ export default {
     },
 
     /**
-     * Show notification that authentication is required
-     * to create the conference, so he should authenticate or wait for a host.
-     * @param {string} roomName name of the conference
-     * @param {function} onAuthNow callback to invoke if
-     * user want to authenticate.
+     * Shows a notification that authentication is required to create the
+     * conference, so the local participant should authenticate or wait for a
+     * host.
+     *
+     * @param {string} room - The name of the conference.
+     * @param {function} onAuthNow - The callback to invoke if the local
+     * participant wants to authenticate.
      * @returns dialog
      */
-    showAuthRequiredDialog: function (roomName, onAuthNow) {
-        var msg = APP.translation.generateTranslationHTML(
-            "[html]dialog.WaitForHostMsg", {room: roomName}
+    showAuthRequiredDialog(room, onAuthNow) {
+        const msg = APP.translation.generateTranslationHTML(
+            '[html]dialog.WaitForHostMsg',
+            { room }
         );
-
-        var buttonTxt = APP.translation.generateTranslationHTML(
-            "dialog.IamHost"
+        const buttonTxt = APP.translation.generateTranslationHTML(
+            'dialog.IamHost'
         );
-        var buttons = [{title: buttonTxt, value: "authNow"}];
+        const buttons = [{
+            title: buttonTxt,
+            value: 'authNow'
+        }];
 
         return APP.UI.messageHandler.openDialog(
-            "dialog.WaitingForHost",
+            'dialog.WaitingForHost',
             msg,
             true,
             buttons,
-            function (e, submitValue) {
-
-                // Do not close the dialog yet
+            (e, submitValue) => {
+                // Do not close the dialog yet.
                 e.preventDefault();
 
-                // Open login popup
+                // Open login popup.
                 if (submitValue === 'authNow') {
                     onAuthNow();
                 }

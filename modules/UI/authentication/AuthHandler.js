@@ -139,47 +139,41 @@ function initJWTTokenListener(room) {
  * @param {JitsiConference} room
  * @param {string} [lockPassword] password to use if the conference is locked
  */
-function doXmppAuth (room, lockPassword) {
-    let loginDialog = LoginDialog.showAuthDialog(function (id, password) {
-        // auth "on the fly":
-        // 1. open new connection with proper id and password
-        // 2. connect to the room
-        // (this will store sessionId in the localStorage)
-        // 3. close new connection
-        // 4. reallocate focus in current room
-        openConnection({id, password, roomName: room.getName()}).then(
-        function (connection) {
-            // open room
-            let newRoom = connection.initJitsiConference(
-                room.getName(), APP.conference._getConferenceOptions()
-            );
+function doXmppAuth(room, lockPassword) {
+    const loginDialog = LoginDialog.showAuthDialog(
+        /* successCallback */ (id, password) => {
+            room.authenticateAndUpgradeRole({
+                id,
+                password,
+                roomPassword: lockPassword,
 
-            loginDialog.displayConnectionStatus('connection.FETCH_SESSION_ID');
+                /** Called when the XMPP login succeeds. */
+                onLoginSuccessful() {
+                    loginDialog.displayConnectionStatus(
+                        'connection.FETCH_SESSION_ID');
+                }
+            })
+            .then(
+                /* onFulfilled */ () => {
+                    loginDialog.displayConnectionStatus(
+                        'connection.GOT_SESSION_ID');
+                    loginDialog.close();
+                },
+                /* onRejected */ error => {
+                    logger.error('authenticateAndUpgradeRole failed', error);
 
-            newRoom.room.moderator.authenticate().then(function () {
-                connection.disconnect();
+                    const { authenticationError, connectionError } = error;
 
-                loginDialog.displayConnectionStatus(
-                    'connection.GOT_SESSION_ID');
-
-                // authenticate conference on the fly
-                room.join(lockPassword);
-
-                loginDialog.close();
-            }).catch(function (error, code) {
-                connection.disconnect();
-
-                logger.error('Auth on the fly failed', error);
-
-                loginDialog.displayError(
-                    'connection.GET_SESSION_ID_ERROR', {code: code});
-            });
-        }, function (err) {
-            loginDialog.displayError(err);
-        });
-    }, function () { // user canceled
-        loginDialog.close();
-    });
+                    if (authenticationError) {
+                        loginDialog.displayError(
+                            'connection.GET_SESSION_ID_ERROR',
+                            { msg: authenticationError });
+                    } else if (connectionError) {
+                        loginDialog.displayError(connectionError);
+                    }
+                });
+        },
+        /* cancelCallback */ () => loginDialog.close());
 }
 
 /**

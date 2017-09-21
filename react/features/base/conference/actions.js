@@ -289,6 +289,23 @@ export function createConference() {
 }
 
 /**
+ * Will try to join the conference again in case it failed earlier with
+ * {@link JitsiConferenceErrors.AUTHENTICATION_REQUIRED}. It means that Jicofo
+ * did not allow to create new room from anonymous domain, but it can be tried
+ * again later in case authenticated user created it in the meantime.
+ *
+ * @returns {Function}
+ */
+export function checkIfCanJoin() {
+    return (dispatch, getState) => {
+        const { authRequired, password }
+            = getState()['features/base/conference'];
+
+        authRequired && authRequired.join(password);
+    };
+}
+
+/**
  * Signals the data channel with the bridge has successfully opened.
  *
  * @returns {{

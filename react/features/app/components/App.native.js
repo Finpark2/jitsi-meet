@@ -4,12 +4,12 @@ import React from 'react';
 import { Linking } from 'react-native';
 
 import '../../analytics';
+import '../../authentication';
 import { Platform } from '../../base/react';
 import '../../mobile/audio-mode';
 import '../../mobile/background';
 import '../../mobile/external-api';
 import '../../mobile/full-screen';
-import '../../mobile/network-activity';
 import '../../mobile/permissions';
 import '../../mobile/proximity';
 import '../../mobile/wake-lock';
