@@ -1,4 +1,8 @@
 var config = {
+    "credentials": {
+        "id": "customer@127.0.0.1",
+        "password": "customer"
+    },
     "videoBandwidth": 4096,
     "useNicks": false,
     "desktopSharingFirefoxMaxVersionExtRequired": -1,
