@@ -14,10 +14,11 @@ const aui_css =
  */
 const devServerProxyTarget
     = process.env.WEBPACK_DEV_SERVER_PROXY_TARGET || 
-            'https://127.0.0.1:7443';
+    'https://127.0.0.1:7443';
 
 const minimize
     = process.argv.indexOf('-p') !== -1
+    || process.env.NODE_ENV === 'production'
         || process.argv.indexOf('--optimize-minimize') !== -1;
 const node_modules = path.join(__dirname, `/node_modules/`);
 const plugins = [
