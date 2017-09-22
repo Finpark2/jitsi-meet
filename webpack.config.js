@@ -193,7 +193,7 @@ module.exports = [
         },
         output: Object.assign({}, config.output, {
             library: 'JitsiMeetExternalAPI',
-            libraryTarget: 'umd'
+            libraryTarget: 'amd'
         })
     })
 ];
